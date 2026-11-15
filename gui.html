@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ILTC WEEKLY SCHEDULE</title>
+<style>
+  :root {
+    --bg: #111318;
+    --panel: #1a1d24;
+    --panel-2: #20242c;
+    --border: #2a2e37;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --accent: #2dd4bf;
+    --accent-dark: #14b8a6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --blue: #60a5fa;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  header { padding: 18px 24px 14px; border-bottom: 1px solid var(--border); }
+  header h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: 0.2px; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 12.5px; }
+  main { flex: 1; display: flex; min-height: 0; padding: 16px 24px 12px; gap: 18px; }
+  .col-left { width: 380px; display: flex; flex-direction: column; min-height: 0; gap: 12px; }
+  .col-right { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+  .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  button {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: inherit; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .btn-primary { background: var(--accent-dark); border-color: var(--accent-dark); color: #06221f; font-weight: 600; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent); }
+  .btn-danger:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+  input {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 7px; padding: 7px 9px; font-size: 13px; font-family: inherit; outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+
+  #accountsPanel { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 12px; }
+  .bar { display: flex; gap: 6px; align-items: center; }
+  .bar input { flex: 1; min-width: 0; }
+  .range select { flex: 1; min-width: 0; }
+  .nums input { width: 70px; flex: 0 0 70px; }
+  #accountList { flex: 1; overflow-y: auto; margin-top: 10px; border-top: 1px solid var(--border); }
+  .section { font-size: 11.5px; color: var(--muted); padding: 10px 6px 4px; }
+  .acct {
+    display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 7px;
+    cursor: pointer; user-select: none; font-size: 13.5px;
+  }
+  .acct:hover { background: var(--panel-2); }
+  .acct.sel { background: rgba(34, 197, 94, 0.14); }
+  .acct .num { width: 22px; text-align: right; color: var(--muted); font-size: 12px; }
+  .acct .tick {
+    width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border); flex: none;
+  }
+  .acct.sel .tick { background: var(--green); border-color: var(--green); }
+  .acct .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acct input.code { width: 70px; padding: 3px 6px; font-size: 12px; text-transform: uppercase; }
+  .acct input.code.missing { border-color: var(--amber); }
+  .count { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+  #slotsPanel { padding: 12px; }
+  .slot { display: grid; grid-template-columns: 90px 1fr 18px 1fr; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; }
+  .slot input { width: 100%; }
+  select {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 7px; padding: 7px 9px; font-size: 13px; font-family: inherit; outline: none;
+  }
+  .hint { color: var(--muted); font-size: 11.5px; margin-top: 8px; line-height: 1.4; }
+
+  .actions { display: flex; gap: 8px; }
+  .actions button { padding: 10px 16px; font-size: 14px; }
+  #log {
+    flex: 1; overflow-y: auto; padding: 12px 14px; font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+  }
+  .l-dim { color: var(--muted); }
+  .l-ok { color: var(--green); }
+  .l-warn { color: var(--amber); }
+  .l-err { color: var(--red); }
+  .l-header { color: var(--blue); font-weight: 600; margin-top: 6px; }
+  footer {
+    padding: 8px 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .dot.on { background: var(--accent); animation: pulse 1s infinite alternate; }
+  @keyframes pulse { from { opacity: 1; } to { opacity: 0.3; } }
+
+  #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; }
+  #modal .box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; min-width: 320px; max-width: min(760px, 92vw); max-height: 86vh; display: flex; flex-direction: column; }
+  #modalDetails { overflow-y: auto; margin-bottom: 14px; font-size: 13px; }
+  #modalDetails h3 { margin: 10px 0 6px; font-size: 13.5px; }
+  #modalDetails .res { margin: 0 0 8px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; }
+  #modalDetails .res b { font-weight: 600; }
+  #modalDetails .res .state { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  #modalDetails ul { margin: 5px 0 0; padding-left: 18px; }
+  #modalDetails li { margin: 2px 0; }
+  #modalDetails .why { color: var(--muted); }
+  #modalDetails .names { color: var(--green); line-height: 1.5; }
+  #modal h2 { margin: 0 0 12px; font-size: 17px; }
+  #modal table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 14px; }
+  #modal td { padding: 5px 0; }
+  #modal td:last-child { text-align: right; font-weight: 600; }
+  .ok { color: var(--green); } .warn { color: var(--amber); } .err { color: var(--red); }
+</style>
+</head>
+<body>
+<header>
+  <h1>ILTC WEEKLY SCHEDULE</h1>
+  <p>Reads each account's week from the scheduling site in Chrome and makes Infloww's Shift schedule match it.</p>
+</header>
+<main>
+  <div class="col-left">
+    <div class="panel" id="accountsPanel">
+      <div class="bar">
+        <input id="search" placeholder="Search accounts..." oninput="renderAccounts()">
+        <button id="loadBtn" onclick="loadAccounts()" title="Read the account list off the scheduling site">Load from site</button>
+      </div>
+      <div class="bar" style="margin-top:6px">
+        <button onclick="selectVisible(true)">Select shown</button>
+        <button onclick="selectVisible(false)">Clear</button>
+        <button id="retryBtn" onclick="selectRetry()" disabled>Select leftovers</button>
+      </div>
+      <div class="bar range nums" style="margin-top:6px">
+        <span class="label">Numbers</span>
+        <input id="numFrom" type="number" min="1" placeholder="29" title="Type the first and last account number, then press Run - the list is read fresh off the site">
+        <span class="label">to</span>
+        <input id="numTo" type="number" min="1" placeholder="43" title="Type the first and last account number, then press Run - the list is read fresh off the site">
+        <span class="hint" style="margin:0 0 0 4px">then press Run</span>
+      </div>
+      <div id="accountList"></div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="panel" id="slotsPanel">
+      <div class="slot" style="margin-top:0">
+        <span class="label" style="grid-column:1 / 3">Infloww time zone</span>
+        <select id="tz" style="grid-column:3 / 5" onchange="pywebview.api.save_timezone(this.value).then(renderState)"></select>
+      </div>
+      <div class="label" style="margin-top:12px">Shift times (in that time zone)</div>
+      <div id="slots"></div>
+      <div class="hint">An end before the start runs into the next day. The program switches Infloww to this time zone before each account. Code = the creator's prefix in Infloww, e.g. <b>ANT</b> for "ANT - 🍉 Antje".
+        <a href="#" onclick="resetSlots();return false" style="color:var(--accent)">Reset times</a></div>
+    </div>
+  </div>
+  <div class="col-right">
+    <div class="actions">
+      <button id="previewBtn" onclick="start(true)">Preview (no changes)</button>
+      <button id="runBtn" class="btn-primary" onclick="start(false)">Run</button>
+      <button id="stopBtn" class="btn-danger" onclick="pywebview.api.stop()" disabled>Stop</button>
+      <span style="flex:1"></span>
+      <button onclick="document.getElementById('log').innerHTML='';pywebview.api.clear_panel_log()">Clear log</button>
+    </div>
+    <div class="panel" id="log"></div>
+  </div>
+</main>
+<footer><span class="dot" id="dot"></span><span id="footer">Ready.</span></footer>
+<div id="modal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="box"><h2 id="modalTitle"></h2><table id="modalRows"></table><div id="modalDetails"></div>
+    <button class="btn-primary" onclick="document.getElementById('modal').style.display='none'">OK</button></div>
+</div>
+<script>
+let state = { accounts: [], selected: [], codes: {}, slots: [] };
+let selected = new Set();
+let retryList = [];
+let lastClicked = null;
+let running = false;
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function renderState(s) {
+  state = s;
+  selected = new Set((s.selected || []).filter(n => s.accounts.some(a => a.name === n)));
+  renderAccounts();
+  renderSlots();
+}
+
+function visibleAccounts() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  return state.accounts.filter(a => !q || a.name.toLowerCase().includes(q)
+    || (state.codes[a.name] || '').toLowerCase().includes(q) || (a.section || '').toLowerCase().includes(q));
+}
+
+function renderAccounts() {
+  const list = document.getElementById('accountList');
+  const shown = visibleAccounts();
+  let html = '', section = null;
+  if (!state.accounts.length) {
+    html = '<div class="hint" style="padding:10px 6px">No accounts yet - open the scheduling page in Chrome and press <b>Load from site</b>.</div>';
+  }
+  shown.forEach(a => {
+    if (a.section !== section) { section = a.section; if (section) html += `<div class="section">${esc(section)}</div>`; }
+    const code = state.codes[a.name] || '';
+    html += `<div class="acct ${selected.has(a.name) ? 'sel' : ''}" data-name="${esc(a.name)}" onclick="toggle(event, this.dataset.name)">
+      <span class="num">${esc(a.number || '')}</span><span class="tick"></span>
+      <span class="name">${esc(a.name)}</span>
+      <input class="code ${code ? '' : 'missing'}" value="${esc(code)}" placeholder="code" data-name="${esc(a.name)}"
+        onclick="event.stopPropagation()" onchange="setCode(this.dataset.name, this.value)"></div>`;
+  });
+  list.innerHTML = html;
+  document.getElementById('count').textContent = `${selected.size} selected of ${state.accounts.length}`;
+}
+
+function toggle(ev, name) {
+  if (running) return;
+  const names = visibleAccounts().map(a => a.name);
+  if (ev.shiftKey && lastClicked && names.includes(lastClicked)) {
+    const [i, j] = [names.indexOf(lastClicked), names.indexOf(name)].sort((a, b) => a - b);
+    const on = !selected.has(name);
+    names.slice(i, j + 1).forEach(n => on ? selected.add(n) : selected.delete(n));
+  } else {
+    selected.has(name) ? selected.delete(name) : selected.add(name);
+  }
+  lastClicked = name;
+  clearNumbers();
+  saveSelected();
+}
+
+function selectVisible(on) {
+  if (running) return;
+  visibleAccounts().forEach(a => on ? selected.add(a.name) : selected.delete(a.name));
+  saveSelected();
+}
+
+function selectRetry() {
+  selected = new Set(retryList);
+  saveSelected();
+}
+
+function saveSelected() {
+  renderAccounts();
+  pywebview.api.save_selected([...selected]);
+}
+
+function setCode(name, value) {
+  state.codes[name] = value.trim().toUpperCase();
+  pywebview.api.save_codes(state.codes).then(s => { state.codes = s.codes; renderAccounts(); });
+}
+
+function renderTimezone() {
+  const zones = [];
+  for (let h = -12; h <= 14; h++) {
+    const sign = h < 0 ? '-' : '+';
+    zones.push(`UTC${sign}${String(Math.abs(h)).padStart(2, '0')}:00`);
+  }
+  if (state.timezone && !zones.includes(state.timezone)) zones.push(state.timezone);
+  document.getElementById('tz').innerHTML = zones.map(z =>
+    `<option ${z === state.timezone ? 'selected' : ''}>${z}</option>`).join('');
+}
+
+function renderSlots() {
+  renderTimezone();
+  document.getElementById('slots').innerHTML = state.slots.map((s, i) => `
+    <div class="slot"><span>${esc(s.name)}</span>
+      <input type="time" value="${s.start}" onchange="setSlot(${i}, 'start', this.value)">
+      <span style="text-align:center;color:var(--muted)">–</span>
+      <input type="time" value="${s.end}" onchange="setSlot(${i}, 'end', this.value)"></div>`).join('');
+}
+
+function setSlot(i, key, value) {
+  state.slots[i][key] = value;
+  pywebview.api.save_slots(state.slots).then(renderState);
+}
+
+function resetSlots() { pywebview.api.reset_slots().then(renderState); }
+
+function loadAccounts() { pywebview.api.load_accounts(); }
+
+function clearNumbers() {
+  document.getElementById('numFrom').value = '';
+  document.getElementById('numTo').value = '';
+}
+
+function start(dry) {
+  // Numbers typed: read the site's list fresh, select those, then run.
+  const a = document.getElementById('numFrom').value.trim();
+  const b = document.getElementById('numTo').value.trim() || a;
+  if (a) {
+    setFooter(`Reading the account list from the site, then running ${a} to ${b}...`);
+    pywebview.api.start_numbers(a, b, dry);
+    return;
+  }
+  // Otherwise the accounts clicked in the list. Keep page order, not click order.
+  const names = state.accounts.map(a => a.name).filter(n => selected.has(n));
+  if (!names.length) { setFooter('Select at least one account first.'); return; }
+  pywebview.api.start(names, dry);
+}
+
+function appendLog(text, cls) {
+  const log = document.getElementById('log');
+  const div = document.createElement('div');
+  if (cls) div.className = cls;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setFooter(text) { document.getElementById('footer').textContent = text; }
+
+function setRunning(on) {
+  running = on;
+  ['previewBtn', 'runBtn', 'loadBtn'].forEach(id => document.getElementById(id).disabled = on);
+  document.getElementById('stopBtn').disabled = !on;
+  document.getElementById('dot').classList.toggle('on', on);
+}
+
+function setRetryList(names) {
+  retryList = names;
+  const b = document.getElementById('retryBtn');
+  b.disabled = !names.length;
+  b.textContent = names.length ? `Select leftovers (${names.length})` : 'Select leftovers';
+}
+
+function showDoneDialog(title, rows, details) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalRows').innerHTML = rows.map(r =>
+    `<tr><td>${esc(r[0])}</td><td class="${r[2] || ''}">${esc(r[1])}</td></tr>`).join('');
+  let html = '';
+  if (details && details.problems.length) {
+    html += `<h3 class="err">Didn't go through</h3>` + details.problems.map(p =>
+      `<div class="res"><b>${esc(p.name)}</b><span class="state">${esc(p.state)}</span><ul>` +
+      p.items.map(([what, why]) => `<li>${esc(what)}${why ? ` <span class="why">- ${esc(why)}</span>` : ''}</li>`).join('') +
+      `</ul></div>`).join('');
+  }
+  if (details && details.no_issues) {
+    html += `<div class="res ok"><b>No issues</b> - everything went through.</div>`;
+  }
+  if (details && details.done.length) {
+    html += `<h3 class="ok">${esc(details.done_label)}</h3>` + details.done.map(d =>
+      `<div class="res"><b class="ok">✅ ${esc(d.name)}</b><ul>` +
+      d.items.map(t => `<li>${esc(t)}</li>`).join('') + `</ul></div>`).join('');
+  }
+  document.getElementById('modalDetails').innerHTML = html;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+window.addEventListener('pywebviewready', () => {
+  pywebview.api.get_state().then(renderState);
+  // Bring back the log from before the app was closed.
+  pywebview.api.get_panel_log().then(lines => (lines || []).forEach(([t, c]) => appendLog(t, c)));
+});
+</script>
+</body>
+</html>

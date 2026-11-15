@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+probe/
+build/
+dist/
+schedule_config.json
+schedule_gui.log
+schedule_gui.log.1
+@AutomationLog.txt
+dist-installer/
+schedule_panel_log.jsonl
